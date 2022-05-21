@@ -12,44 +12,40 @@ import com.ihrm.social.client.EmployeeFeignClient;
 import com.ihrm.social.dao.ArchiveDao;
 import com.ihrm.social.dao.ArchiveDetailDao;
 import com.ihrm.social.dao.UserSocialSecurityDao;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Transactional
 public class ArchiveService {
 
-	@Autowired
+	@Resource
 	private ArchiveDao archiveDao;
 
-	@Autowired
+	@Resource
 	private ArchiveDetailDao archiveDetailDao;
 
-	@Autowired
+	@Resource
 	private UserSocialService userSocialService;
 
-	@Autowired
+	@Resource
 	private IdWorker idWorker;
 
-	@Autowired
+	@Resource
 	private UserSocialSecurityDao userSocialSecurityDao;
 
-	@Autowired
+	@Resource
 	private EmployeeFeignClient employeeFeignClient;
 
-	@Autowired
+	@Resource
 	private PaymentItemService paymentItemService;
 
-
-	
 
 	/**
 	 * 根据企业id和年月查询归档历史
@@ -70,12 +66,16 @@ public class ArchiveService {
 		return archiveDetailDao.findByArchiveId(id);
 	}
 
-	public List<ArchiveDetail> getReports(String yearMonth,String companyId) throws Exception {
+	public List<ArchiveDetail> getReports(String yearMonth,String companyId) {
 		//查询用户的社保列表 (用户和基本社保数据)
-		Page<Map> userSocialSecurityItemPage = userSocialSecurityDao.findPage(companyId,null);
+		Page<Map<String,Object>> userSocialSecurityItemPage = userSocialSecurityDao.findPage(companyId,null);
+		if (userSocialSecurityItemPage == null || CollectionUtils.isEmpty(userSocialSecurityItemPage.getContent())){
+			return Collections.emptyList();
+		}
+
 		List<ArchiveDetail> list = new ArrayList<>();
 
-		for (Map map : userSocialSecurityItemPage) {
+		for (Map<String,Object> map : userSocialSecurityItemPage) {
 			String userId = (String)map.get("id");
 			String mobile = (String)map.get("mobile");
 			String username = (String)map.get("username");
@@ -137,7 +137,7 @@ public class ArchiveService {
 	/**
 	 * 社保数据归档
 	 */
-	public void archive(String yearMonth, String companyId) throws Exception {
+	public void archive(String yearMonth, String companyId) {
 		//1.查询归档明细数据
 		List<ArchiveDetail> archiveDetails = getReports(yearMonth, companyId);
 		//1.1 计算当月,企业与员工支出的所有社保金额

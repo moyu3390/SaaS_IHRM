@@ -3,10 +3,11 @@ package com.ihrm.salarys.controller;
 import com.ihrm.common.controller.BaseController;
 import com.ihrm.common.entity.Result;
 import com.ihrm.common.entity.ResultCode;
-import com.ihrm.domain.salarys.CompanySettings;
+import com.ihrm.domain.salarys.SalaryCompanySettings;
 import com.ihrm.salarys.service.CompanySettingsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
 
 /**
  * 企业设置Controller
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping(value = "/salarys")
 public class CompanySettingsController extends BaseController {
 
-	@Autowired
+	@Resource
 	private CompanySettingsService companySettingsService;
 
 	/**
@@ -24,7 +25,7 @@ public class CompanySettingsController extends BaseController {
 	 */
 	@RequestMapping(value = "/company-settings", method = RequestMethod.GET)
 	public Result getCompanySettings() throws Exception {
-		CompanySettings companySettings = companySettingsService.findById(companyId);
+		SalaryCompanySettings companySettings = companySettingsService.findById(companyId);
 		return new Result(ResultCode.SUCCESS, companySettings);
 	}
 
@@ -32,16 +33,16 @@ public class CompanySettingsController extends BaseController {
 	 * 保存企业工资设置
 	 */
 	@RequestMapping(value = "/company-settings", method = RequestMethod.POST)
-	public Result saveCompanySettings(@RequestBody CompanySettings companySettings) throws Exception {
+	public Result saveCompanySettings(@RequestBody SalaryCompanySettings companySettings) {
 		companySettings.setCompanyId(companyId);
 		companySettingsService.save(companySettings);
 		return new Result(ResultCode.SUCCESS);
 	}
 
 	//构造新报表
-	@RequestMapping(value = "/reports/{yearMonth}/newReport", method = RequestMethod.PUT)
+	@PutMapping(value = "/reports/{yearMonth}/newReport")
 	public Result newReport(@PathVariable(value = "yearMonth") String yearMonth) {
-		CompanySettings companySettings = new CompanySettings();
+		SalaryCompanySettings companySettings = new SalaryCompanySettings();
 		companySettings.setCompanyId(companyId);
 		companySettings.setDataMonth(yearMonth);
 		companySettingsService.save(companySettings);

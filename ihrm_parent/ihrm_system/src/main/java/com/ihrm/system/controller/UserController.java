@@ -11,7 +11,6 @@ import com.ihrm.common.poi.ExcelImportUtil;
 import com.ihrm.domain.company.Company;
 import com.ihrm.domain.system.User;
 import com.ihrm.domain.system.response.ProfileResult;
-import com.ihrm.domain.system.response.UserResult;
 import com.ihrm.system.client.CompanyFeignClient;
 import com.ihrm.system.service.UserService;
 import org.apache.shiro.SecurityUtils;
@@ -20,12 +19,12 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.crypto.hash.Md5Hash;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.Subject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -36,15 +35,15 @@ import java.util.Map;
  * @date: 2020/01/09
  **/
 //解决跨域
-@CrossOrigin
+//@CrossOrigin
 @RestController
 @RequestMapping(value = "/sys")
 public class UserController extends BaseController {
 
-    @Autowired
+    @Resource
     private UserService userService;
 
-    @Autowired
+    @Resource
     private CompanyFeignClient companyFeignClient;
 
     /**
@@ -79,7 +78,6 @@ public class UserController extends BaseController {
         userService.saveAll(list , companyId , companyName);
         return new Result(ResultCode.SUCCESS);
     }
-
 
     /**
      * 分配角色
@@ -127,7 +125,6 @@ public class UserController extends BaseController {
         return new Result(ResultCode.SUCCESS , pageResult);
     }
 
-
     /**
      * 根据Id查询
      */
@@ -161,7 +158,7 @@ public class UserController extends BaseController {
     /**
      * 用户登录
      */
-    @RequestMapping(value = "/login" , method = RequestMethod.POST)
+    @PostMapping(value = "/login")
     public Result login(@RequestBody Map<String,Object> loginMap){
         String mobile = (String) loginMap.get("mobile");
         String password = (String) loginMap.get("password");
@@ -193,6 +190,7 @@ public class UserController extends BaseController {
             //构造返回结果
             return new Result(ResultCode.SUCCESS , sessionId);
         }catch (Exception e){
+            System.out.println("error : " + e);
             return new Result(ResultCode.MOBILEORPASSWORDERROR);
         }
     }
@@ -201,15 +199,13 @@ public class UserController extends BaseController {
      * 用户登录成功之后,获取用户信息
      */
     @RequestMapping(value = "/profile" , method = RequestMethod.POST)
-    public Result profile(HttpServletRequest request) throws Exception {
-
+    public Result profile() {
         //获取session中的安全数据
         Subject subject = SecurityUtils.getSubject();
         //subject获取所有的安全集合
         PrincipalCollection principals = subject.getPrincipals();
         //获取安全数据
         ProfileResult result = (ProfileResult) principals.getPrimaryPrincipal();
-
         return new Result(ResultCode.SUCCESS,result);
     }
 

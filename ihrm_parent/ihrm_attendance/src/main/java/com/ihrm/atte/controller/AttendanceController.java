@@ -9,7 +9,6 @@ import com.ihrm.common.entity.ResultCode;
 import com.ihrm.domain.atte.entity.ArchiveMonthly;
 import com.ihrm.domain.atte.entity.ArchiveMonthlyInfo;
 import com.ihrm.domain.atte.entity.Attendance;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,10 +25,10 @@ import java.util.Map;
 @RequestMapping("/attendances")
 public class AttendanceController extends BaseController {
 
-    @Autowired
+    @Resource
     private ExcelImportService excelImportService;
 
-    @Autowired
+    @Resource
     private AtteService atteService;
 
     @Resource(name = "ihrm_attendance_archiveService")
@@ -49,7 +48,7 @@ public class AttendanceController extends BaseController {
      */
     @RequestMapping(value = "" , method = RequestMethod.GET)
     public Result list(int page,int pagesize) throws ParseException {
-        Map map = atteService.getAtteDate(companyId , page , pagesize);
+        Map<String,Object> map = atteService.getAtteDate(companyId , page , pagesize);
         return new Result(ResultCode.SUCCESS , map);
     }
 
@@ -58,7 +57,7 @@ public class AttendanceController extends BaseController {
      */
     @RequestMapping(value = "/{id}" , method = RequestMethod.PUT)
     public Result editAtte(@RequestBody Attendance attendance){
-        atteService.ehitAtte(attendance);
+        atteService.editAtte(attendance);
         return new Result(ResultCode.SUCCESS);
     }
 

@@ -20,13 +20,13 @@ import org.activiti.engine.task.Task;
 import org.hibernate.SQLQuery;
 import org.hibernate.transform.Transformers;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.Resource;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.criteria.*;
@@ -39,31 +39,31 @@ import java.util.*;
 @Service
 public class AuditService {
 
-    @Autowired
+    @Resource
     private ProcInstanceDao procInstanceDao;
 
-    @Autowired
+    @Resource
     private FeignClientService feignClientService;
 
-    @Autowired
+    @Resource
     private IdWorker idWorker;
 
-    @Autowired
+    @Resource
     private RepositoryService repositoryService;
 
-    @Autowired
+    @Resource
     private RuntimeService runtimeService;
 
-    @Autowired
+    @Resource
     private TaskService taskService;
 
-    @Autowired
+    @Resource
     private ProcTaskInstanceDao procTaskInstanceDao;
 
-    @Autowired
+    @Resource
     private ProcUserGroupDao procUserGroupDao;
 
-    @Autowired
+    @Resource
     private EntityManager entityManager;
 
    /**
@@ -75,33 +75,30 @@ public class AuditService {
      */
     public Page getInstanceList(ProcInstance instance, int page, int size) {
         //使用Specification进行查询
-        Specification<ProcInstance> spec = new Specification<ProcInstance>() {
-            @Override
-            public Predicate toPredicate(Root<ProcInstance> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-                List<Predicate> list = new ArrayList<>();
-                //审批类型
-                if (!StringUtils.isEmpty(instance.getProcessKey())){
-                    list.add(cb.equal(root.get("processKey").as(String.class) , instance.getProcessKey()));
-                }
-                //审批状态
-                if (!StringUtils.isEmpty(instance.getProcessState())){
-                    Expression<String> exp =root.get("processState");
-                    list.add(exp.in(instance.getProcessState().split(",")));
-                }
-                //当前节点的待处理人
-                if (!StringUtils.isEmpty(instance.getProcCurrNodeUserId())){
-                    list.add(cb.like(root.get("procCurrNodeUserId").as(String.class) , "%" + instance.getProcCurrNodeUserId() + "%"));
-                }
-                //发起人 -- userId
-                if(!StringUtils.isEmpty(instance.getUserId())) {
-                    list.add(cb.equal(root.get("userId").as(String.class),instance.getUserId()));
-                }
-                return cb.and(list.toArray(new Predicate[list.size()]));
+        Specification<ProcInstance> spec = (root, query, cb) -> {
+            List<Predicate> list = new ArrayList<>();
+            //审批类型
+            if (!StringUtils.isEmpty(instance.getProcessKey())){
+                list.add(cb.equal(root.get("processKey").as(String.class) , instance.getProcessKey()));
             }
+            //审批状态
+            if (!StringUtils.isEmpty(instance.getProcessState())){
+                Expression<String> exp =root.get("processState");
+                list.add(exp.in(instance.getProcessState().split(",")));
+            }
+            //当前节点的待处理人
+            if (!StringUtils.isEmpty(instance.getProcCurrNodeUserId())){
+                list.add(cb.like(root.get("procCurrNodeUserId").as(String.class) , "%" + instance.getProcCurrNodeUserId() + "%"));
+            }
+            //发起人 -- userId
+            if(!StringUtils.isEmpty(instance.getUserId())) {
+                list.add(cb.equal(root.get("userId").as(String.class),instance.getUserId()));
+            }
+            return cb.and(list.toArray(new Predicate[0]));
         };
         //构造查询条件
         //调用dao进行specification查询
-        return procInstanceDao.findAll(spec , new PageRequest(page-1 , size));
+        return procInstanceDao.findAll(spec , PageRequest.of(page-1 , size));
     }
 
     /**
@@ -236,13 +233,14 @@ public class AuditService {
             Task nextTask = taskService.createTaskQuery().processInstanceId(processInstanceList.get(0).getId()).singleResult();
             if(nextTask != null) {
                 List<User> users = findCurrUsers(nextTask, user);
-                String usernames = "", userIdS = "";
+                StringBuilder usernames = new StringBuilder();
+                StringBuilder userIdS = new StringBuilder();
                 for (User user1 : users) {
-                    usernames += user1.getUsername() + " ";
-                    userIdS += user1.getId();
+                    usernames.append(user1.getUsername()).append(" ");
+                    userIdS.append(user1.getId());
                 }
-                instance.setProcCurrNodeUserId(userIdS);
-                instance.setProcCurrNodeUserName(usernames);
+                instance.setProcCurrNodeUserId(userIdS.toString());
+                instance.setProcCurrNodeUserName(usernames.toString());
                 instance.setProcessState("1");
             }else{
                 //如果不存在下一个节点,任务结束

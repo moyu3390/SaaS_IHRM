@@ -4,16 +4,15 @@ import com.ihrm.common.controller.BaseController;
 import com.ihrm.common.entity.PageResult;
 import com.ihrm.common.entity.Result;
 import com.ihrm.common.entity.ResultCode;
-import com.ihrm.domain.company.Company;
 import com.ihrm.domain.social_security.*;
 import com.ihrm.social.client.SystemFeignClient;
 import com.ihrm.social.service.ArchiveService;
 import com.ihrm.social.service.CompanySettingsService;
 import com.ihrm.social.service.PaymentItemService;
 import com.ihrm.social.service.UserSocialService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,19 +26,19 @@ import java.util.Map;
 @RequestMapping("/social_securitys")
 public class SocialSecurityController extends BaseController {
 
-    @Autowired
+    @Resource
     private CompanySettingsService companySettingsService;
 
-    @Autowired
+    @Resource
     private UserSocialService userSocialService;
 
-    @Autowired
+    @Resource
     private SystemFeignClient systemFeignClient;
 
-    @Autowired
+    @Resource
     private PaymentItemService paymentItemService;
 
-    @Autowired
+    @Resource
     private ArchiveService archiveService;
 
     /**
@@ -47,7 +46,7 @@ public class SocialSecurityController extends BaseController {
      */
     @RequestMapping(value = "/settings" , method = RequestMethod.GET)
     public Result settings(){
-        CompanySettings cs = companySettingsService.findById(companyId);
+        SocialsecurityCompanySettings cs = companySettingsService.findById(companyId);
         return new Result(ResultCode.SUCCESS , cs);
     }
 
@@ -55,9 +54,9 @@ public class SocialSecurityController extends BaseController {
      * 保存企业设置
      */
     @RequestMapping(value = "/settings" , method = RequestMethod.POST)
-    public Result saveSettings(@RequestBody CompanySettings companySettings){
-        companySettings.setCompanyId(companyId);
-        companySettingsService.save(companySettings);
+    public Result saveSettings(@RequestBody SocialsecurityCompanySettings socialsecurityCompanySettings){
+        socialsecurityCompanySettings.setCompanyId(companyId);
+        companySettingsService.save(socialsecurityCompanySettings);
         return new Result(ResultCode.SUCCESS);
     }
 
@@ -146,9 +145,9 @@ public class SocialSecurityController extends BaseController {
      */
     @RequestMapping(value = "/historys/{yearMonth}/newReport" , method = RequestMethod.PUT)
     public Result newReport(@PathVariable String yearMonth){
-        CompanySettings cs = companySettingsService.findById(companyId);
+        SocialsecurityCompanySettings cs = companySettingsService.findById(companyId);
         if (cs == null){
-            cs = new CompanySettings();
+            cs = new SocialsecurityCompanySettings();
         }
         cs.setCompanyId(companyId);
         cs.setDataMonth(yearMonth);

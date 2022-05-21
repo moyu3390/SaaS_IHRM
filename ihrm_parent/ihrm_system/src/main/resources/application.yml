@@ -16,7 +16,7 @@ spring:
     name: ihrm-system #指定服务名
   #2.数据库连接池
   datasource:
-    driver-class-name: com.mysql.jdbc.Driver
+    driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/ihrm?useUnicode=true&characterEncoding=utf8
     username: root
     password: root
@@ -30,6 +30,11 @@ spring:
     database: MySQL
     show-sql: true
     open-in-view: true
+feign:
+  okhttp:
+    enabled: true
+  httpclient:
+    enabled: false
 my:
   appId: 15191935
   apiKey: cyWSHgas93Vtdmt42OwbW8pu
